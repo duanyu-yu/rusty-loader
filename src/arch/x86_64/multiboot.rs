@@ -20,7 +20,7 @@ use crate::BootInfoExt;
 
 extern "C" {
 	static mut loader_end: u8;
-	static mb_info: usize;
+	pub(crate) static mb_info: usize;
 }
 
 #[allow(bad_asm_style)]
@@ -28,7 +28,7 @@ mod entry {
 	core::arch::global_asm!(include_str!("entry.s"));
 }
 
-struct Mem;
+pub(crate) struct Mem;
 
 impl MemoryManagement for Mem {
 	unsafe fn paddr_to_slice<'a>(&self, p: PAddr, sz: usize) -> Option<&'static [u8]> {
@@ -64,6 +64,8 @@ impl DeviceTree {
 		if let Some(cmdline) = multiboot.command_line() {
 			fdt = fdt.bootargs(cmdline)?;
 		}
+
+		fdt = fdt.pci()?;
 
 		let fdt = fdt.finish()?;
 
